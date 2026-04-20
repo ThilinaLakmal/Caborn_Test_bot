@@ -1,0 +1,514 @@
+META API RATE LIMITS DOC/
+
+Rate limiting#
+Our application limits the number of requests you can make during certain period of time. The restrictions are different for different REST API paths or websocket/SDK RPC API methods. If the request limit is exceeded, then error TooManyRequests (http status code - 429) will be returned. The error payload contains recommended time to repeat request at.
+
+MetaApi API has following types of limits defined:
+
+REST and RPC API rate limits
+real-time market data streaming rate limits
+real-time terminal state synchronization limits
+REST and RPC API rate limiting#
+REST and RPC API rate limiting use CPU credits system. There are several limits defined by the MetaApi app. According to each limit your app is granted with a number of credits per unit of time and you can consume the credits for making API calls.
+
+REST and RPC API rate limits include 3 kinds of limits:
+
+Total number of CPU credits available per application
+Number of CPU credits available to be spent on a single server
+Number of CPU credits available to be spent on a single account
+Historical market data API rate limits use the same system, however they are calculated independendtly of the rest of the API.
+
+In addition to above, historical market data API limits number of concurrent requests per account.
+
+Note, that small-scale applications are likely to hit limit #1 above. Large scale applications, which have more than 120 accounts deployed (as per time of writing this document) are likely to hit limit #2 first.
+
+What should I do if I hit a REST/RPC API rate limit?#
+If you hit a rate limit accidentally, just wait recommended time as per error payload and retry your request.
+
+If you are consistently hitting rate limits this most likely means that you are not using our API efficiently. Consider switching from RPC-style API to real-time streaming API as it requires much less computational resources on server-side and thus scales much better. Feel free to contact our support to get some assistance on how to design more efficient application.
+
+You can also contact support to request your rate limit quotas increase, however a justification might be required for rate limit quotas increase.
+
+Total number of CPU credits available per application#
+Below is a table of how many credits your entire application can spend for a period of time. Please note that you need to multiply these values by the number of accounts you have deployed to MetaApi to figure out your final quota.
+
+Period	Credits available
+1 second	1000
+1 minute	6000
+1 hour	18000
+6 hours	43200
+Example: If you have 10 accounts deployed, then you end up with 10000 CPU credits quota per second because 1000 CPU credits per second is multiplied by the number of deployed accounts.
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "The getAccountInformation API allows 1000 cpu credits per 1s to avoid overloading our servers. Please wait some time and retry your request or contact support to extend your quota. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "total": 1000,
+    "available": 0,
+    "needed": 50,
+    "resourceId": 'user:userId',
+    "multiplierId": 'accountCount:userId',
+    "exceededConfig": 'perUser',
+    "exceededPeriod": '1s',
+    "recommendedRetryTime": "2022-05-31T09:00:52.361Z",
+    "method": "getAccountInformation"
+  }
+}
+Number of CPU credits available on a single server#
+In order to avoid overloading a server, there is a separate limit each front-end server (there are 12 front-end servers at the time of writing this doc).
+
+If you reached the credit limit on one server you can switch servers by selecting different value of client-id HTTP header.
+
+Allowed credits on one server per time period
+
+Period	Credits available (shared server)
+1 second	2000
+1 minute	18000
+1 hour	180000
+6 hours	432000
+An example of an error in the case of using all credits on one server
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "The getAccountInformation API allows 2000 cpu credits per 1s to avoid overloading our servers. Please wait some time and retry your request or contact support to extend your quota. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "total": 2000,
+    "available": 0,
+    "needed": 50,
+    "resourceId": 'server:vGopD5NMrdcv',
+    "exceededConfig": 'perServer',
+    "exceededPeriod": '1s',
+    "recommendedRetryTime": "2022-05-31T09:00:52.361Z",
+    "method": "getAccountInformation"
+  }
+}
+Number of CPU credits available to be spent on a single account#
+Overloading a single account can adversely affect quality of service provided to your application, thus there is a separate limit of how many CPU credits you can spend making requests to a single account.
+
+Available credits table for one account per time period
+
+Period	Credits available
+10 seconds	5000
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "The getAccountInformation API allows 2000 cpu credits per 1s to avoid overloading our servers. Please wait some time and retry your request or contact support to extend your quota. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "total": 5000,
+    "available": 0,
+    "needed": 100,
+    "resourceId": 'account:16d703b1-f529-42c2-b647-dc660a313458',
+    "exceededConfig": 'perAccount',
+    "exceededPeriod": '10s',
+    "recommendedRetryTime": "2022-05-31T09:00:52.361Z",
+    "method": "getAccountInformation"
+  }
+}
+Number of concurrent historical market data API requests per account#
+MetaApi allows 5 concurrent historica market data requests per account.
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "It seems like you attempted to run too many concurrent historical market data requests for this account. You can execute a maximum of 5 concurrent historical market data requests per account. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "maxRequestsPerAccount": 5,
+    "concurrentRequestCount": 6,
+    "recommendedRetryTime": "2021-02-05T16:59:17.029Z",
+    "type": "LIMIT_CONCURRENT_MARKET_DATA_REQUESTS_PER_ACCOUNT"
+  }
+}
+Cost of API calls in CPU credits#
+Below is the table of the cost of each REST API request in credits.
+
+Path	Credits
+GET /users/current/accounts/:accountId/accountInformation	50
+GET /users/current/accounts/:accountId/positions	50
+GET /users/current/accounts/:accountId/positions/:positionId	50
+GET /users/current/accounts/:accountId/orders	50
+GET /users/current/accounts/:accountId/orders/:orderId	50
+GET /users/current/accounts/:accountId/history-orders/ticket/:ticket	50
+GET /users/current/accounts/:accountId/history-orders/position/:positionId	50
+GET /users/current/accounts/:accountId/history-orders/time/:startTime/:endTime	75 + (number of history orders found) * 0.65
+GET /users/current/accounts/:accountId/history-deals/ticket/:ticket	50
+GET /users/current/accounts/:accountId/history-deals/position/:positionId	50
+GET /users/current/accounts/:accountId/history-deals/time/:startTime/:endTime	75 + (number of deals found) * 0.65
+POST /users/current/accounts/:accountId/trade	10
+GET /users/current/accounts/:accountId/symbols/symbols	500
+GET /users/current/accounts/:accountId/symbols/:symbol/specification	50
+GET /users/current/accounts/:accountId/symbols/:symbol/current-price	50
+GET /users/current/accounts/:accountId/symbols/:symbol/current-candles/:timeframe	50
+GET /users/current/accounts/:accountId/symbols/:symbol/current-tick	50
+GET /users/current/accounts/:accountId/symbols/:symbol/current-book	50 + (number of book records) * 0.1
+POST /users/current/accounts/:accountId/symbols/:symbol/unsubscribe	50
+GET /users/current/accounts/:accountId/historical-market-data/symbols/:symbol/ticks	0.1 + (number of ticks returned) * 0.0002
+GET /users/current/accounts/:accountId/historical-market-data/symbols/:symbol/timeframes/:timeframe/candles	0.1 + (number of candles returned) * 0.0004
+Below is the table of the cost of each websocket/SDK API request in credits. Please note that only RPC API requests consume CPU credits. Real-time streaming API does not consume any credits.
+
+Path	Credits
+getAccountInformation or get_account_information	50
+getPositions or get_positions	50
+getPosition or get_position	50
+getOrders or get_orders	50
+getOrder or get_order	50
+getHistoryOrdersByTicket or get_history_orders_by_ticket	50
+getHistoryOrdersByPosition or get_history_orders_by_position	50
+getHistoryOrdersByTimeRange or get_history_orders_by_time_range	75 + (number of history orders found) * 0.65
+getDealsByTicket or get_deals_by_ticket	50
+getDealsByPosition or get_deals_by_position	50
+getDealsByTimeRange or get_deals_by_time_range	75 + (number of deals found) * 0.65
+trade methods	10
+getSymbols or get_symbols	500
+getSymbolSpecification or get_symbol_specification	50
+getSymbolPrice or get_symbol_price	50
+getCandle or get_candle	50
+getTick or get_tick	50
+getBook or get_book	50 + (number of book records) * 0.1
+subscribeToMarketData or subscribe_to_market_data	50
+unsubscribeFromMarketData or unsubscribe_from_market_data	50
+refreshTerminalState or refresh_terminal_state	50
+refreshSymbolQuotes or refresh_symbol_quotes	10
+Real-time market data streaming rate limiting#
+If you hit a market data streaming rate limit, then server will send you downgradeSubscription event. You can handle it via onSubscriptionDowngraded / on_subscription_downgraded event handler in SDK.
+
+What should I do if I hit a market data streaming rate limits?#
+If you hit a rate limit for market data subscriptions please make sure you unsubscribe from unwanted market data and also make sure you did not accidentaly made any unwanted heavy subscriptions.
+
+Note that MT platform will subscribe to quotes of some symbols implicitly. E.g. if you have an EUR account and subscribe to a symbol which is nominated in USD (such as GBPUSD) then MT will automatically subscribe to the quotes of the symbol required to convert USD to EUR, i.e. EURUSD.
+
+If you have no excessive subscriptions but still hitting the limit, then distribute your market data subscriptions across several accounts.
+
+How market data streaming rate limits are calculated#
+Each market data streaming event server sends to you costs some market data streaming credits.
+
+Each account maintains an independent market data streaming credit accounting.
+
+Your available credits are listed in the table below.
+
+Period	Credits available
+10 seconds	31500
+1 minute	126000
+5 minutes	315000
+Each market data streaming packet sent to you cost 2 credits. Each quote or candle your receive costs 2 credits. Each tick or order book entry you receive costs 1 credit.
+
+Obviously market depth data subscriptions are usually most heavy, followed by tick data subscriptions.
+
+How much market data I can receive given these limits?#
+5 minute limit allows you to receive approximately 200K ticks which approximately equals to daily throughput on most active EURUSD symbol.
+
+5 minute limit allows you to receive approximately 20K order books (given the average size of order book equal to 10) which approximately equals to 10% of the daily throughput on most active EURUSD symbol.
+
+Thus you should have plenty of room for your market data subscriptions.
+
+Real-time terminal state synchronization limits#
+SDK performs terminal state synchronization in several steps. First, it is emitting a subscribe request to subscribe to the account synchronization events. Then it issues a synchronize request to synchronize to the terminal state.
+
+There are three types of rate limits defined:
+
+subscribe request rate limits
+limits on the number of account subscriptions your application can establish
+limits on the number of terminal state synchronizations
+You are unlikely to ever worry about these limits as SDK is designed to observe the limits and react to rate limiting errors correctly.
+
+Subscribe request rate limits#
+Subscribe request is rate-limited based on the number of requests allowed from one account.
+
+The number of available requests is multiplied by the number of deployed accounts.
+
+Below is a table of how many requests can be made over a period of time.
+
+Period	Requests available
+1 minute	10
+Limits on the number of account subscriptions your application can establish#
+There are currently two account susbcriptions limits:
+
+total number of account subscriptions per application per server
+total number of account subscriptions per application
+total number of account subscriptions per server (applied to all users)
+Total number of account subscriptions per server#
+One user can subscribe to more than 300 accounts on one server, if you try to subscribe to more accounts, the server will respond with error 429 (TooManyRequests).
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "One user can connect to one server no more than 300 accounts. Current number of connected accounts 300. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "maxAccountsPerUserPerServer": 300,
+    "accountsCount":  300,
+    "recommendedRetryTime": "2021-02-05T16:59:17.029Z",
+    "type": "LIMIT_ACCOUNT_SUBSCRIPTIONS_PER_USER_PER_SERVER"
+  }
+}
+Total number of account subscriptions per application#
+This limit is calculated as the number of accounts deployed by the user multiplied by 10.
+
+For example, if you have 5 accounts, then you can make no more than total of 50 subscriptions on all servers in the system.
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "You have used all your account subscriptions quota. You have 50 account subscriptions available and have used 50 subscriptions. Please deploy more accounts to get more subscriptions. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "maxSubscriptionsPerUser":  50,
+    "subscriptionsCount": 50,
+    "recommendedRetryTime": "2021-02-05T16:59:17.029Z",
+    "type": "LIMIT_ACCOUNT_SUBSCRIPTIONS_PER_USER"
+  }
+}
+Total number of account subscriptions per server (applied to all users)#
+If the server is overloaded, it will ask you to try to connect to another server.
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "You can not subscribe to more accounts on this connection because server is out of capacity. Please establish a new connection with a different client-id header value to switch to a different server. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "changeClientIdHeader": true,
+    "recommendedRetryTime": "2021-02-05T16:59:17.029Z",
+    "type": "LIMIT_ACCOUNT_SUBSCRIPTIONS_PER_SERVER"
+  }
+}
+Limits on the number of terminal state synchronizations#
+The MetaApi limits the number of simultaneous synchronizations from one user.
+
+Your application can synchronize to not more than 10% of the total number of the accounts you have subscribed to. The value is rounded to the closest greater integer and can not be less than 1.
+
+For example, if you have subscriebed to 23 accounts, then you can execute a maximum of 3 concurrent synchronizations.
+
+Error example:
+
+{
+  "id": 1,
+  "error": "TooManyRequestsError",
+  "message": "It seems like you attempted to run too many concurrent synchronizations on this server. You can have maximum of 10 concurrent synchronizations on this server because you have subscribed to 100 accounts on the server and you are allowed to execute one concurrent synchronization per 10 account subscriptions. For more information see https://metaapi.cloud/docs/client/rateLimiting/",
+  "metadata": {
+    "maxSynchronizationsCount": 10,
+    "subscribedAccountsCount": 100,
+    "synchronizationsPerAccount": 10,
+    "recommendedRetryTime": "2021-02-05T16:59:17.029Z",
+    "type": "LIMIT_ACCOUNT_SYNCHRONIZATIONS_PER_USER_PER_SERVER"
+  }
+}
+
+
+Binance rate limits doc
+
+Rate limits
+Connection limits
+There is a limit of 300 connections per attempt every 5 minutes.
+
+The connection is per IP address.
+
+General information on rate limits
+Current API rate limits can be queried using the exchangeInfo request.
+There are multiple rate limit types across multiple intervals.
+Responses can indicate current rate limit status in the optional rateLimits field.
+Requests fail with status 429 when unfilled order count or request rate limits are violated.
+How to interpret rate limits
+A response with rate limit status may look like this:
+
+{
+    "id": "7069b743-f477-4ae3-81db-db9b8df085d2",
+    "status": 200,
+    "result": {
+        "serverTime": 1656400526260
+    },
+    "rateLimits": [
+        {
+            "rateLimitType": "REQUEST_WEIGHT",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 6000,
+            "count": 70
+        }
+    ]
+}
+
+The rateLimits array describes all currently active rate limits affected by the request.
+
+Name	Type	Mandatory	Description
+rateLimitType	ENUM	YES	Rate limit type: REQUEST_WEIGHT, ORDERS
+interval	ENUM	YES	Rate limit interval: SECOND, MINUTE, HOUR, DAY
+intervalNum	INT	YES	Rate limit interval multiplier
+limit	INT	YES	Request limit per interval
+count	INT	YES	Current usage per interval
+Rate limits are accounted by intervals.
+
+For example, a 1 MINUTE interval starts every minute. Request submitted at 00:01:23.456 counts towards the 00:01:00 minute's limit. Once the 00:02:00 minute starts, the count will reset to zero again.
+
+Other intervals behave in a similar manner. For example, 1 DAY rate limit resets at 00:00 UTC every day, and 10 SECOND interval resets at 00, 10, 20... seconds of each minute.
+
+APIs have multiple rate-limiting intervals. If you exhaust a shorter interval but the longer interval still allows requests, you will have to wait for the shorter interval to expire and reset. If you exhaust a longer interval, you will have to wait for that interval to reset, even if shorter rate limit count is zero.
+
+How to show/hide rate limit information
+rateLimits field is included with every response by default.
+
+However, rate limit information can be quite bulky. If you are not interested in detailed rate limit status of every request, the rateLimits field can be omitted from responses to reduce their size.
+
+Optional returnRateLimits boolean parameter in request.
+
+Use returnRateLimits parameter to control whether to include rateLimits fields in response to individual requests.
+
+Default request and response:
+
+{ "id": 1, "method": "time" }
+
+{
+    "id": 1,
+    "status": 200,
+    "result": { "serverTime": 1656400526260 },
+    "rateLimits": [
+        {
+            "rateLimitType": "REQUEST_WEIGHT",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 6000,
+            "count": 70
+        }
+    ]
+}
+
+Request and response without rate limit status:
+
+{ "id": 2, "method": "time", "params": { "returnRateLimits": false } }
+
+{ "id": 2, "status": 200, "result": { "serverTime": 1656400527891 } }
+
+Optional returnRateLimits boolean parameter in connection URL.
+
+If you wish to omit rateLimits from all responses by default, use returnRateLimits parameter in the query string instead:
+
+wss://ws-api.binance.com:443/ws-api/v3?returnRateLimits=false
+
+This will make all requests made through this connection behave as if you have passed "returnRateLimits": false.
+
+If you want to see rate limits for a particular request, you need to explicitly pass the "returnRateLimits": true parameter.
+
+Note: Your requests are still rate limited if you hide the rateLimits field in responses.
+
+IP limits
+Every request has a certain weight, added to your limit as you perform requests.
+The heavier the request (e.g. querying data from multiple symbols), the more weight the request will cost.
+Connecting to WebSocket API costs 2 weight.
+Current weight usage is indicated by the REQUEST_WEIGHT rate limit type.
+Use the exchangeInfo request to keep track of the current weight limits.
+Weight is accumulated per IP address and is shared by all connections from that address.
+If you go over the weight limit, requests fail with status 429.
+This status code indicates you should back off and stop spamming the API.
+Rate-limited responses include a retryAfter field, indicating when you can retry the request.
+Repeatedly violating rate limits and/or failing to back off after receiving 429s will result in an automated IP ban and you will be disconnected.
+Requests from a banned IP address fail with status 418.
+retryAfter field indicates the timestamp when the ban will be lifted.
+IP bans are tracked and scale in duration for repeat offenders, from 2 minutes to 3 days.
+Successful response indicating that in 1 minute you have used 70 weight out of your 6000 limit:
+
+{
+    "id": "7069b743-f477-4ae3-81db-db9b8df085d2",
+    "status": 200,
+    "result": [],
+    "rateLimits": [
+        {
+            "rateLimitType": "REQUEST_WEIGHT",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 6000,
+            "count": 70
+        }
+    ]
+}
+
+Failed response indicating that you are banned and the ban will last until epoch 1659146400000:
+
+{
+    "id": "fc93a61a-a192-4cf4-bb2a-a8f0f0c51e06",
+    "status": 418,
+    "error": {
+        "code": -1003,
+        "msg": "Way too much request weight used; IP banned until 1659146400000. Please use WebSocket Streams for live updates to avoid bans.",
+        "data": {
+            "serverTime": 1659142907531,
+            "retryAfter": 1659146400000
+        }
+    },
+    "rateLimits": [
+        {
+            "rateLimitType": "REQUEST_WEIGHT",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 6000,
+            "count": 2411
+        }
+    ]
+}
+
+
+Unfilled Order Count
+Successfully placed orders update the ORDERS rate limit type.
+Rejected or unsuccessful orders might or might not update the ORDERS rate limit type.
+Please note that if your orders are consistently filled by trades, you can continuously place orders on the API. For more information, please see Spot Unfilled Order Count Rules.
+Use the account.rateLimits.orders request to keep track of how many orders you have placed within this interval.
+If you exceed this, requests fail with status 429.
+This status code indicates you should back off and stop spamming the API.
+Responses that have a status 429 include a retryAfter field, indicating when you can retry the request.
+This is maintained per account and is shared by all API keys of the account.
+Successful response indicating that you have placed 12 orders in 10 seconds, and 4043 orders in the past 24 hours:
+
+{
+    "id": "e2a85d9f-07a5-4f94-8d5f-789dc3deb097",
+    "status": 200,
+    "result": {
+        "symbol": "BTCUSDT",
+        "orderId": 12510053279,
+        "orderListId": -1,
+        "clientOrderId": "a097fe6304b20a7e4fc436",
+        "transactTime": 1655716096505,
+        "price": "0.10000000",
+        "origQty": "10.00000000",
+        "executedQty": "0.00000000",
+        "origQuoteOrderQty": "0.000000",
+        "cummulativeQuoteQty": "0.00000000",
+        "status": "NEW",
+        "timeInForce": "GTC",
+        "type": "LIMIT",
+        "side": "BUY",
+        "workingTime": 1655716096505,
+        "selfTradePreventionMode": "NONE"
+    },
+    "rateLimits": [
+        {
+            "rateLimitType": "ORDERS",
+            "interval": "SECOND",
+            "intervalNum": 10,
+            "limit": 50,
+            "count": 12
+        },
+        {
+            "rateLimitType": "ORDERS",
+            "interval": "DAY",
+            "intervalNum": 1,
+            "limit": 160000,
+            "count": 4043
+        },
+        {
+            "rateLimitType": "REQUEST_WEIGHT",
+            "interval": "MINUTE",
+            "intervalNum": 1,
+            "limit": 6000,
+            "count": 321
+        }
+    ]
+}

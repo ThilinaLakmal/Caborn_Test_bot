@@ -1,0 +1,16 @@
+[project]
+name = "new-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.9.0",
+    "ccxt>=4.3.0",
+    "firebase-admin>=7.1.0",
+    "metaapi-cloud-sdk>=28.0.0",
+    "numpy>=2.4.2",
+    "pandas>=3.0.0",
+    "pytelegrambotapi>=4.30.0",
+    "python-binance>=1.0.34",
+]

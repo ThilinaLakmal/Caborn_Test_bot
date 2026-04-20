@@ -1,0 +1,17 @@
+Forex Gold (XAUUSD) - Short Bot Overview
+
+- Strategy: Multi-factor score (Stoch RSI + trend + momentum candle + volume + support/resistance position).
+- Trade trigger: Opens BUY/SELL only when score is strong enough (min score 3.5).
+- Lot size: Fixed 0.01 lot per trade (no dynamic lot sizing).
+- Entry pricing: BUY at Ask, SELL at Bid.
+- Max open trades: 2 at a time.
+- Initial risk setup: TP 45%, SL 60% from entry-price formula.
+- Position protection:
+  - Move SL to breakeven around +20% profit.
+  - Start trailing around +30% profit.
+  - Trail keeps about 10% below peak profit.
+- Safety controls:
+  - Crash detection can close all positions.
+  - Cooldown pause after crash event.
+  - Daily loss and daily trade limits are enforced.
+- Scan speed: Checks market every few seconds in a loop.

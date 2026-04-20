@@ -1,0 +1,237 @@
+[TRADE-LOOP] ⚠️ Maximum 2 trades already active on Binance (6). Skipping TRXUSDT
+[TRADE-LOOP] Processing coin 4/23: XLMUSDT
+[TRADE-LOOP] Fetching recent prices for XLMUSDT...
+Error fetching recent prices for XLMUSDT: HTTPSConnectionPool(host='fapi.binance.com', port=443): Max retries exceeded with url: /fapi/v1/klines?interval=1m&limit=100&symbol=XLMUSDT (Caused by NameResolutionError("HTTPSConnection(host='fapi.binance.com', port=443): Failed to resolve 'fapi.binance.com' ([Errno -3] Temporary failure in name resolution)"))
+[TRADE-LOOP] ✅ Recent prices fetched for XLMUSDT
+[TRADE-LOOP] ⚠️ Could not fetch prices for XLMUSDT. Skipping.
+[TRADE-LOOP] Processing coin 5/23: SHIBUSDT
+
+
+[TRADE-LOOP] Fetching recent prices for FISUSDT...
+2026-03-31 20:47:08,352 (__init__.py:1241 MainThread) ERROR - TeleBot: "Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid"
+2026-03-31 20:47:08,364 (__init__.py:1243 MainThread) ERROR - TeleBot: "Exception traceback:
+Traceback (most recent call last):
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 1312, in handle_callback_query
+    balance = future.result(timeout=15)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 458, in result
+    raise TimeoutError()
+TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 1235, in __threaded_polling
+    self.worker_pool.raise_exceptions()
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 154, in raise_exceptions
+    raise self.exception_info
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 97, in run
+    task(*args, **kwargs)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 10427, in _run_middlewares_and_handler
+    result = handler['function'](message)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/main.py", line 102, in callback_query
+    handle_callback_query(bot, call)
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 1334, in handle_callback_query
+    bot.answer_callback_query(call.id, f"❌ Error: {str(e)[:50]}", show_alert=True)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+"
+
+
+
+
+
+
+
+[VIEW_STATUS] Error: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+2026-03-31 20:53:01,835 (__init__.py:1241 MainThread) ERROR - TeleBot: "Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid"
+2026-03-31 20:53:01,844 (__init__.py:1243 MainThread) ERROR - TeleBot: "Exception traceback:
+Traceback (most recent call last):
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 917, in handle_callback_query
+    bot.answer_callback_query(call.id)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 1235, in __threaded_polling
+    self.worker_pool.raise_exceptions()
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 154, in raise_exceptions
+    raise self.exception_info
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 97, in run
+    task(*args, **kwargs)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 10427, in _run_middlewares_and_handler
+    result = handler['function'](message)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/main.py", line 102, in callback_query
+    handle_callback_query(bot, call)
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 920, in handle_callback_query
+    bot.answer_callback_query(call.id, f"❌ Error: {str(e)[:50]}", show_alert=True)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+
+
+
+
+
+
+[TRADE-LOOP] Processing coin 2/25: ADAUSDT
+[MT5-STATS] Async status fallback:
+[VIEW_STATUS] Error: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+2026-03-31 21:37:25,795 (__init__.py:1241 MainThread) ERROR - TeleBot: "Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid"
+2026-03-31 21:37:25,803 (__init__.py:1243 MainThread) ERROR - TeleBot: "Exception traceback:
+Traceback (most recent call last):
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 907, in handle_callback_query
+    bot.edit_message_text(
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 5444, in edit_message_text
+    result = apihelper.edit_message_text(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 1668, in edit_message_text
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 1235, in __threaded_polling
+    self.worker_pool.raise_exceptions()
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 154, in raise_exceptions
+    raise self.exception_info
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 97, in run
+    task(*args, **kwargs)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 10427, in _run_middlewares_and_handler
+    result = handler['function'](message)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/main.py", line 102, in callback_query
+    handle_callback_query(bot, call)
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 920, in handle_callback_query
+    bot.answer_callback_query(call.id, f"❌ Error: {str(e)[:50]}", show_alert=True)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+"
+[CRASH-PROTECTION] Evaluated change: -0.24% | Safe Zone: -2% to 2%
+
+
+
+
+
+
+TRADE-LOOP] Fetching recent prices for XLMUSDT...
+[MT5-STATS] Async status fallback:
+[VIEW_STATUS] Error: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+2026-03-31 21:44:38,792 (__init__.py:1241 MainThread) ERROR - TeleBot: "Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid"
+2026-03-31 21:44:38,800 (__init__.py:1243 MainThread) ERROR - TeleBot: "Exception traceback:
+Traceback (most recent call last):
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 917, in handle_callback_query
+    bot.answer_callback_query(call.id)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 1235, in __threaded_polling
+    self.worker_pool.raise_exceptions()
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 154, in raise_exceptions
+    raise self.exception_info
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/util.py", line 97, in run
+    task(*args, **kwargs)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 10427, in _run_middlewares_and_handler
+    result = handler['function'](message)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/main.py", line 102, in callback_query
+    handle_callback_query(bot, call)
+  File "/home/tradeing-bot/handlers/callback_handler.py", line 920, in handle_callback_query
+    bot.answer_callback_query(call.id, f"❌ Error: {str(e)[:50]}", show_alert=True)
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/__init__.py", line 6551, in answer_callback_query
+    return apihelper.answer_callback_query(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 2037, in answer_callback_query
+    return _make_request(token, method_url, params=payload, method='post')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/tradeing-bot/venv/lib/python3.12/site-packages/telebot/apihelper.py", line 197, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 400. Description: Bad Request: query is too old and response timeout expired or query ID is invalid
+
+
+
+
+
+
+
+
+websoktet error:------------------------------------------------------------------------------------------------------------------------------------
+
+[2026-03-31T21:45:20.603338] [ERROR] 289ad948-6c6a-4b5e-a909-8a639206fe50:0: Failed to subscribe {"name": "TimeoutException", "message": "MetaApi websocket client request of account 289ad948-6c6a-4b5e-a909-8a639206fe50 timed out because socket client failed to connect to the server.", "trace": "Traceback (most recent call last):\n  File \"/home/tradeing-bot/venv/lib/python3.12/site-packages/metaapi_cloud_sdk/clients/metaapi/subscription_manager.py\", line 110, in subscribe_task\n    await self.subscribe(account_id, instance_number)\n  File \"/home/tradeing-bot/venv/lib/python3.12/site-packages/metaapi_cloud_sdk/clients/metaapi/metaapi_websocket_client.py\", line 1659, in rpc_request\n    raise TimeoutException(\nmetaapi_cloud_sdk.clients.timeout_exception.TimeoutException: MetaApi websocket client request of account 289ad948-6c6a-4b5e-a909-8a639206fe50 timed out because socket client failed to connect to the server.\n"}
+[2026-03-31T21:45:20.603832] [ERROR] 289ad948-6c6a-4b5e-a909-8a639206fe50:1: Failed to subscribe {"name": "TimeoutException", "message": "MetaApi websocket client request of account 289ad948-6c6a-4b5e-a909-8a639206fe50 timed out because socket client failed to connect to the server.", "trace": "Traceback (most recent call last):\n  File \"/home/tradeing-bot/venv/lib/python3.12/site-packages/metaapi_cloud_sdk/clients/metaapi/subscription_manager.py\", line 110, in subscribe_task\n    await self.subscribe(account_id, instance_number)\n  File \"/home/tradeing-bot/venv/lib/python3.12/site-packages/metaapi_cloud_sdk/clients/metaapi/metaapi_websocket_client.py\", line 1659, in rpc_request\n    raise TimeoutException(\nmetaapi_cloud_sdk.clients.timeout_exception.TimeoutException: MetaApi websocket client request of account 289ad948-6c6a-4b5e-a909-8a639206fe50 timed out because socket client failed to connect to the server.\n"}
+
+[TRADE-LOOP] ✅ Recent prices fetched for ALGOUSDT
+
+Error fetching recent prices for FLRUSDT: HTTPSConnectionPool(host='fapi.binance.com', port=443): Max retries exceeded with url: /fapi/v1/klines?interval=1m&limit=100&symbol=FLRUSDT (Caused by NameResolutionError("HTTPSConnection(host='fapi.binance.com', port=443): Failed to resolve 'fapi.binance.com' ([Errno -3] Temporary failure in name resolution)"))
+
+
+
+
+[MT5-LOOP] 😴 Sleeping 10s...
+[CRASH-PROTECTION] ❌ Error checking for crash: 'CrashProtection' object has no attribute 'last_crash_check'
