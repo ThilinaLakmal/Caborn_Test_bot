@@ -1,5 +1,5 @@
 TELEGRAM_BOT_TOKEN="8623525957:AAGucRihN774OYWitFx6DGtJKDONfvo3-j4"
-BOT_CREATOR_ID=8292575478
+BOT_CREATOR_ID=1290649570
 MAIN_ADMIN="@dev_7518"
 BOT_NAME="BINANCE - MT5 TRADING BOT"
 
@@ -154,8 +154,8 @@ MT5_LOSS_PERCENTAGE = 60.0           # Legacy percentage SL (kept for compatibil
 MT5_TAKE_PROFIT_PIPS = 500           # Fixed TP distance in pips for forex gold (deprecated - use balance-based instead)
 MT5_STOP_LOSS_PIPS = 1000            # Fixed SL distance in pips for forex gold (deprecated - use balance-based instead)
 MT5_BREAKEVEN_TRIGGER_PCT = 20.0     # Move SL to breakeven at 20%
-MT5_TRAILING_TRIGGER_PCT = 30.0      # Start trailing at 30%
-MT5_TRAILING_STOP_PCT = 10.0         # Trail SL at 10%
+MT5_TRAILING_TRIGGER_PCT = 15.0      # Start trailing at 15% (Tightened for scalping)
+MT5_TRAILING_STOP_PCT = 5.0          # Trail SL at 5% (Tightened for scalping)
 MT5_DEVIATION = 10                   # Max price deviation in points
 
 # MT5 BALANCE-BASED LOT & PIP RANGES FOR GOLD (XAUUSD)
@@ -178,15 +178,15 @@ MT5_DEVIATION = 10                   # Max price deviation in points
 #   (100,∞) → lot=0.03, SL=150pip→ $4.50 loss max  (~2–5% of account)
 # ──────────────────────────────────────────────────────────────────────────
 MT5_BALANCE_TIERS = {
-    (0,   5):          {"lot": 0.01, "tp_pips": 100, "sl_pips": 100},    # better RR (1:1.25)
-    (5,  10):          {"lot": 0.01, "tp_pips": 100, "sl_pips": 75},    # improved RR
-    (10, 20):          {"lot": 0.01, "tp_pips": 175, "sl_pips": 110},   # stable growth
-    (20, 30):          {"lot": 0.01, "tp_pips": 250, "sl_pips": 250},   # controlled risk
-    (30, 50):          {"lot": 0.01, "tp_pips": 250, "sl_pips": 200},   # consistent RR
+    (0,   5):          {"lot": 0.01, "tp_pips": 50,  "sl_pips": 50},    # tighter SL/TP for scalping
+    (5,  10):          {"lot": 0.01, "tp_pips": 50,  "sl_pips": 40},    # tighter SL/TP for scalping
+    (10, 20):          {"lot": 0.01, "tp_pips": 85,  "sl_pips": 55},    # scaled down for scalping
+    (20, 30):          {"lot": 0.01, "tp_pips": 125, "sl_pips": 125},   # scaled down for scalping
+    (30, 50):          {"lot": 0.01, "tp_pips": 125, "sl_pips": 100},   # scaled down for scalping
 
-    (50, 100):         {"lot": 0.01, "tp_pips": 300, "sl_pips": 220},   # reduced lot (was 0.02)
+    (50, 100):         {"lot": 0.01, "tp_pips": 150, "sl_pips": 110},   # scaled down for scalping
     
-    (100, float('inf')): {"lot": 0.02, "tp_pips": 150, "sl_pips": 100}, # reduced aggression
+    (100, float('inf')): {"lot": 0.02, "tp_pips": 75, "sl_pips": 50},  # reduced aggression for scalping
 }
 
 # Minimum usable balance — bot will skip opening new trades below this
@@ -211,9 +211,9 @@ def get_mt5_balance_based_params(balance):
     return MT5_BALANCE_TIERS[(0, 5)]
 
 # MT5 Timeframes
-MT5_SIGNAL_TIMEFRAME = "M5"
-MT5_TREND_TIMEFRAME = "H1"
-MT5_SUPPORT_RESISTANCE_TIMEFRAME = "H4"
+MT5_SIGNAL_TIMEFRAME = "M5"          # Scalping execution timeframe
+MT5_TREND_TIMEFRAME = "M15"          # Shorter-term trend for scalping (was H1)
+MT5_SUPPORT_RESISTANCE_TIMEFRAME = "H1" # Support/Resistance for scalping (was H4)
 
 # MT5 StochRSI Parameters
 MT5_STOCH_RSI_PERIOD = 14            # Stochastic lookback on the RSI series
