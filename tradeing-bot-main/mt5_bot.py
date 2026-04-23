@@ -20,10 +20,7 @@ from datetime import datetime, timedelta
 
 from mt5.mt5_config import (
     FOREX_SYMBOLS,
-    LOT_SIZE,
     MAX_CONCURRENT_TRADES,
-    WIN_PERCENTAGE,
-    LOSS_PERCENTAGE,
     BREAKEVEN_TRIGGER_PCT,
     TRAILING_TRIGGER_PCT,
     TRAILING_STOP_PCT,
@@ -31,6 +28,7 @@ from mt5.mt5_config import (
     SLEEP_BETWEEN_SYMBOLS,
     MIN_SIGNAL_SCORE,
 )
+from config import get_mt5_balance_based_params
 from mt5.mt5_core import (
     MT5UserContext,
     create_user_context,
@@ -82,24 +80,30 @@ async def sync_positions(ctx):
                 "sl": p["sl"],
                 "tp": p["tp"],
                 "volume": p["volume"],
-                "highest_profit_pct": 0.0,  # Track peak profit for trailing
+                "highest_profit_pips": 0.0,  # Track peak profit for trailing
                 "breakeven_set": False,      # Flag: SL moved to breakeven
                 "trailing_active": False,    # Flag: trailing stop active
             }
             print(f"[SYNC] Loaded existing {direction} for {sym} @ {entry} (ticket {p['ticket']})")
 
 
-def calculate_sl_tp(direction, price, sym_info):
-    """Calculate SL and TP from config percentages."""
+def calculate_sl_tp(direction, price, sym_info, balance):
+    """Calculate SL and TP based on account balance pip tiers."""
+    params = get_mt5_balance_based_params(balance)
+    sl_pips = params["sl_pips"]
+    tp_pips = params["tp_pips"]
+    
+    pip_size = 0.01  # Assuming Gold/XAUUSD pip sizing
+
     if direction == "BUY":
-        sl = price * (1 - LOSS_PERCENTAGE / 100)
-        tp = price * (1 + WIN_PERCENTAGE / 100)
+        sl = price - (sl_pips * pip_size)
+        tp = price + (tp_pips * pip_size)
     else:
-        sl = price * (1 + LOSS_PERCENTAGE / 100)
-        tp = price * (1 - WIN_PERCENTAGE / 100)
+        sl = price + (sl_pips * pip_size)
+        tp = price - (tp_pips * pip_size)
 
     digits = sym_info["digits"]
-    return round(sl, digits), round(tp, digits)
+    return round(sl, digits), round(tp, digits), params["lot"]
 
 
 # =====================================================
@@ -162,11 +166,11 @@ async def trading_loop(ctx):
 
             # Calculate SL/TP
             price = ask if signal == "BUY" else bid
-            sl, tp = calculate_sl_tp(signal, price, sym_info)
+            sl, tp, trade_lot = calculate_sl_tp(signal, price, sym_info, balance)
 
             # Place order via MetaAPI
             comment = f"StochRSI {signal}"
-            result = await open_position(ctx, symbol, signal, LOT_SIZE, sl, tp, comment)
+            result = await open_position(ctx, symbol, signal, trade_lot, sl, tp, comment)
 
             if result is not None:
                 position_id = result.get('positionId', result.get('orderId', ''))
@@ -176,8 +180,8 @@ async def trading_loop(ctx):
                     "entry": price,
                     "sl": sl,
                     "tp": tp,
-                    "volume": LOT_SIZE,
-                    "highest_profit_pct": 0.0,
+                    "volume": trade_lot,
+                    "highest_profit_pips": 0.0,
                     "breakeven_set": False,
                     "trailing_active": False,
                 }
@@ -204,25 +208,27 @@ async def manage_position(ctx, symbol):
     ticket = state["ticket"]
     current_sl = state["sl"]
 
+    pip_size = 0.01  # Assuming Gold/XAUUSD pip sizing
+
     if direction == "BUY":
         current_price = bid
-        pnl_pct = ((current_price - entry) / entry) * 100
+        pnl_pips = (current_price - entry) / pip_size
     else:
         current_price = ask
-        pnl_pct = ((entry - current_price) / entry) * 100
+        pnl_pips = (entry - current_price) / pip_size
 
-    if pnl_pct > state["highest_profit_pct"]:
-        state["highest_profit_pct"] = pnl_pct
+    if pnl_pips > state.get("highest_profit_pips", 0.0):
+        state["highest_profit_pips"] = pnl_pips
 
     print(f"[MANAGE] {symbol} {direction} | Entry: {entry:.5f} | "
-          f"Current: {current_price:.5f} | P/L: {pnl_pct:.2f}% | Peak: {state['highest_profit_pct']:.2f}%")
+          f"Current: {current_price:.5f} | P/L: {pnl_pips:.1f} pips | Peak: {state.get('highest_profit_pips', 0.0):.1f} pips")
 
     # === BREAKEVEN LOGIC ===
-    if pnl_pct >= BREAKEVEN_TRIGGER_PCT and not state["breakeven_set"]:
+    if pnl_pips >= BREAKEVEN_TRIGGER_PCT and not state["breakeven_set"]:
         if direction == "BUY":
-            new_sl = entry * 1.001
+            new_sl = entry + (1 * pip_size)  # +1 pip to cover spread
         else:
-            new_sl = entry * 0.999
+            new_sl = entry - (1 * pip_size)
         
         result = await modify_position_sl(ctx, ticket, new_sl)
         if result:
@@ -232,24 +238,24 @@ async def manage_position(ctx, symbol):
         return
 
     # === TRAILING STOP LOGIC ===
-    if pnl_pct >= TRAILING_TRIGGER_PCT:
+    if pnl_pips >= TRAILING_TRIGGER_PCT:
         state["trailing_active"] = True
-        locked_profit_pct = state["highest_profit_pct"] - TRAILING_STOP_PCT
+        locked_pips = state["highest_profit_pips"] - TRAILING_STOP_PCT
         
         if direction == "BUY":
-            new_sl = entry * (1 + locked_profit_pct / 100)
+            new_sl = entry + (locked_pips * pip_size)
             if new_sl > state["sl"]:
                 result = await modify_position_sl(ctx, ticket, new_sl)
                 if result:
                     state["sl"] = new_sl
-                    print(f"[MANAGE] 📈 {symbol} TRAILING SL | New SL: {new_sl:.5f} | Locking {locked_profit_pct:.1f}% profit")
+                    print(f"[MANAGE] 📈 {symbol} TRAILING SL | New SL: {new_sl:.5f} | Locking {locked_pips:.1f} pips")
         else:
-            new_sl = entry * (1 - locked_profit_pct / 100)
+            new_sl = entry - (locked_pips * pip_size)
             if new_sl < state["sl"]:
                 result = await modify_position_sl(ctx, ticket, new_sl)
                 if result:
                     state["sl"] = new_sl
-                    print(f"[MANAGE] 📉 {symbol} TRAILING SL | New SL: {new_sl:.5f} | Locking {locked_profit_pct:.1f}% profit")
+                    print(f"[MANAGE] 📉 {symbol} TRAILING SL | New SL: {new_sl:.5f} | Locking {locked_pips:.1f} pips")
 
 
 # =====================================================

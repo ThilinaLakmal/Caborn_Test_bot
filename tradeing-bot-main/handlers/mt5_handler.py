@@ -667,7 +667,7 @@ async def mt5_trade_loop(username: str, bot, telegram_id: int):
                         "sl": sl,
                         "tp": tp,
                         "volume": lot_size,
-                        "highest_profit_pct": 0.0,
+                        "highest_profit_pips": 0.0,
                         "breakeven_set": False,
                         "trailing_active": False,
                     }
@@ -872,7 +872,7 @@ async def sync_mt5_positions(username, ctx, bot=None, telegram_id=None):
                 "sl": p["sl"],
                 "tp": p["tp"],
                 "volume": p["volume"],
-                "highest_profit_pct": 0.0,
+                "highest_profit_pips": 0.0,
                 "breakeven_set": False,
                 "trailing_active": False,
             }
@@ -883,9 +883,10 @@ async def manage_mt5_position(username, ticket, bot, telegram_id, ctx):
     """
     Manage open position with breakeven and trailing stop logic via MetaAPI.
     
-    - At BREAKEVEN_TRIGGER_PCT (20%): Move SL to entry (breakeven)
-    - At TRAILING_TRIGGER_PCT (30%): Start trailing stop  
-    - Trailing: SL follows at TRAILING_STOP_PCT below peak profit
+    All thresholds are treated as PIPS (not percentages) for Forex/Gold scalping:
+    - At BREAKEVEN_TRIGGER_PCT pips (20): Move SL to entry + 1 pip (breakeven)
+    - At TRAILING_TRIGGER_PCT pips (15): Start trailing stop  
+    - Trailing: SL follows at TRAILING_STOP_PCT pips (5) below peak profit
     """
     pos = mt5_user_data[username]["positions"].get(ticket)
     if not pos:
@@ -903,26 +904,32 @@ async def manage_mt5_position(username, ticket, bot, telegram_id, ctx):
     direction = pos["direction"]
     current_sl = pos["sl"]
 
-    # Calculate current P/L percentage
+    # Get pip size for this symbol (0.01 for Gold, broker-aware for others)
+    sym_info = await get_symbol_info(ctx, symbol)
+    if sym_info is None:
+        return
+    pip_size = _get_mt5_pip_size(symbol, sym_info)
+
+    # Calculate current P/L in pips
     if direction == "BUY":
         current_price = bid
-        pnl_pct = ((current_price - entry) / entry) * 100
+        pnl_pips = (current_price - entry) / pip_size
     else:
         current_price = ask
-        pnl_pct = ((entry - current_price) / entry) * 100
+        pnl_pips = (entry - current_price) / pip_size
 
-    # Update highest profit tracking
-    if pnl_pct > pos.get("highest_profit_pct", 0):
-        pos["highest_profit_pct"] = pnl_pct
+    # Update highest profit tracking (in pips)
+    if pnl_pips > pos.get("highest_profit_pips", 0.0):
+        pos["highest_profit_pips"] = pnl_pips
 
-    print(f"[MT5-MANAGE] {symbol} {direction} | Entry: {entry:.5f} | P/L: {pnl_pct:.2f}% | Peak: {pos.get('highest_profit_pct', 0):.2f}%")
+    print(f"[MT5-MANAGE] {symbol} {direction} | Entry: {entry:.5f} | P/L: {pnl_pips:.1f} pips | Peak: {pos.get('highest_profit_pips', 0.0):.1f} pips")
 
-    # === BREAKEVEN LOGIC ===
-    if pnl_pct >= BREAKEVEN_TRIGGER_PCT and not pos.get("breakeven_set", False):
+    # === BREAKEVEN LOGIC (triggered at BREAKEVEN_TRIGGER_PCT pips) ===
+    if pnl_pips >= BREAKEVEN_TRIGGER_PCT and not pos.get("breakeven_set", False):
         if direction == "BUY":
-            new_sl = entry * 1.001  # Slightly above entry for spread
+            new_sl = entry + (1 * pip_size)  # +1 pip above entry to cover spread
         else:
-            new_sl = entry * 0.999  # Slightly below entry for SELL
+            new_sl = entry - (1 * pip_size)  # -1 pip below entry for SELL
         
         result = await modify_position_sl(ctx, ticket, new_sl)
         if result:
@@ -933,34 +940,34 @@ async def manage_mt5_position(username, ticket, bot, telegram_id, ctx):
                 chat_id=telegram_id,
                 text=f"🔒 <b>Breakeven Set</b>\n\n"
                      f"💱 <b>Pair:</b> <code>{symbol}</code>\n"
-                     f"📊 <b>Profit:</b> <code>{pnl_pct:.2f}%</code>\n"
+                     f"📊 <b>Profit:</b> <code>{pnl_pips:.1f} pips</code>\n"
                      f"🛑 <b>New SL:</b> <code>{new_sl:.5f}</code>\n\n"
                      f"<i>Stop loss moved to breakeven to protect capital.</i>",
                 parse_mode='HTML'
             )
         return
 
-    # === TRAILING STOP LOGIC ===
-    if pnl_pct >= TRAILING_TRIGGER_PCT:
+    # === TRAILING STOP LOGIC (triggered at TRAILING_TRIGGER_PCT pips) ===
+    if pnl_pips >= TRAILING_TRIGGER_PCT:
         pos["trailing_active"] = True
         
-        # Calculate trailing stop based on peak profit
-        locked_profit_pct = pos["highest_profit_pct"] - TRAILING_STOP_PCT
+        # Lock in (peak_pips - trail_distance) pips of profit
+        locked_pips = pos["highest_profit_pips"] - TRAILING_STOP_PCT
         
         if direction == "BUY":
-            new_sl = entry * (1 + locked_profit_pct / 100)
+            new_sl = entry + (locked_pips * pip_size)
             if new_sl > pos["sl"]:
                 result = await modify_position_sl(ctx, ticket, new_sl)
                 if result:
                     pos["sl"] = new_sl
-                    print(f"[MT5-MANAGE] 📈 {symbol} TRAILING | New SL: {new_sl:.5f} | Locking {locked_profit_pct:.1f}%")
+                    print(f"[MT5-MANAGE] 📈 {symbol} TRAILING | New SL: {new_sl:.5f} | Locking {locked_pips:.1f} pips")
         else:
-            new_sl = entry * (1 - locked_profit_pct / 100)
+            new_sl = entry - (locked_pips * pip_size)
             if new_sl < pos["sl"]:
                 result = await modify_position_sl(ctx, ticket, new_sl)
                 if result:
                     pos["sl"] = new_sl
-                    print(f"[MT5-MANAGE] 📉 {symbol} TRAILING | New SL: {new_sl:.5f} | Locking {locked_profit_pct:.1f}%")
+                    print(f"[MT5-MANAGE] 📉 {symbol} TRAILING | New SL: {new_sl:.5f} | Locking {locked_pips:.1f} pips")
 
 
 async def get_mt5_balance_async(telegram_id):
